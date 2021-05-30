@@ -1,2 +1,3 @@
-# ds_jobs_posting_analysis
+## Data Science Job Posting Analysis
+
 This project analyses data science-related jobs from different industry!
