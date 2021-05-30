@@ -132,3 +132,4 @@ data/*
 notebooks/references/*
 .Rproj.user
 r_eda/data/*
+models/*

@@ -73,10 +73,6 @@ ggsave('../figures/num_ds_job_per_state.png', p)
 ```
 
 ```{r num_ds_job_per_state_amazon}
-# Amazon
-# General Electric Company
-# JP Morgan Chase Company
-
 p <- df %>% 
   filter(EMPLOYER == 'Amazon') %>% 
   group_by(STATE) %>% tally() %>% ungroup() %>% 
@@ -92,10 +88,6 @@ ggsave(file.path(here::here(), 'data/num_ds_job_per_state_amazon.png'), p)
 ```
 
 ```{r num_ds_job_per_state_ge}
-# Amazon
-# General Electric Company
-# JP Morgan Chase Company
-
 p <- df %>% 
   filter(EMPLOYER == 'General Electric Company') %>% 
   group_by(STATE) %>% tally() %>% ungroup() %>% 
@@ -111,10 +103,6 @@ ggsave(file.path(here::here(), 'data/num_ds_job_per_state_ge.png'), p)
 ```
 
 ```{r num_ds_job_per_state_jpm}
-# Amazon
-# General Electric Company
-# JP Morgan Chase Company
-
 p <- df %>% 
   filter(EMPLOYER == 'JP Morgan Chase Company') %>% 
   group_by(STATE) %>% tally() %>% ungroup() %>% 
@@ -131,9 +119,36 @@ ggsave(file.path(here::here(), 'data/num_ds_job_per_state_jpm.png'), p)
 
 ## 7. Text Analyses
 
-```{r}
+```{r top_20_skills}
+all_skills <- df %>% 
+  select(contains('SKILL')) %>% 
+  select(-NUM_SKILL) %>% 
+  unlist() %>% 
+  unname() 
 
+top_20_skills <- table(all_skills) %>% 
+  as_tibble() %>% 
+  dplyr::rename(SKILL = all_skills,
+                FREQ = n) %>% 
+  arrange(desc(FREQ)) %>% 
+  slice(1:20)
 ```
+
+```{r top_20_skills_plot}
+p <- top_20_skills %>% 
+  ggplot(aes(x = reorder(SKILL, FREQ), y = FREQ, label = FREQ)) +
+  geom_bar(stat='identity', fill = 'tomato') + coord_flip() +
+  geom_text(hjust = -0.5, size = 3) + 
+  scale_y_continuous(labels = scales::comma) +
+  xlab('Skill') +
+  ylab('Occurences') +
+  ggtitle('Top 20 Skills in Data Science Jobs') +
+  theme_hc() +
+  ylim(0, 11000)
+
+ggsave(file.path(here::here(), 'figures/top_20_skills.png'), p, dpi = 300)
+```
+
 
 ## 8. Skills Analysis
 
