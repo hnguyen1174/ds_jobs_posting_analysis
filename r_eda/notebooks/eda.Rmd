@@ -6,7 +6,7 @@ date: "2021-05-29"
 
 ## 1. Load Libraries
 
-```{r}
+```{r library}
 library(tidyverse)
 library(here)
 library(lubridate)
@@ -14,11 +14,12 @@ library(glue)
 library(sf)
 library(tigris)
 library(ggthemes)
+library(reshape2)
 ```
 
 ## 2 Load Data
 
-```{r}
+```{r load_data}
 df <- read_csv('../data/data_science_jobs.csv')
 df <- df %>% 
   dplyr::rename(index = X1)
@@ -27,6 +28,24 @@ df <- df %>%
 ## 3. Analyses by Companies
 
 ## 4. Analyses by Time
+
+```{r index_by_year}
+p <- df %>% 
+  filter(YEAR > 2007) %>% 
+  group_by(YEAR) %>% 
+  summarize(AVG_ML_INDEX = mean(ML_INDEX),
+            AVG_NLP_INDEX = mean(NLP_INDEX),
+            AVG_CV_INDEX = mean(CV_INDEX)) %>% 
+  melt(id.vars = 'YEAR') %>% 
+  ggplot() +
+  geom_line(aes(x = YEAR, y = value, group = variable, color = variable)) +
+  theme_hc() +
+  xlab('Year') +
+  ylab('Index') +
+  ggtitle('Index Values by Year')
+
+ggsave(file.path(here::here(), 'figures/index_values_by_year.png'), p, dpi = 300)
+```
 
 ## 5. Analyses by Job Types
 
@@ -119,6 +138,8 @@ ggsave(file.path(here::here(), 'data/num_ds_job_per_state_jpm.png'), p)
 
 ## 7. Text Analyses
 
+## 8. Skills Analysis
+
 ```{r top_20_skills}
 all_skills <- df %>% 
   select(contains('SKILL')) %>% 
@@ -149,10 +170,128 @@ p <- top_20_skills %>%
 ggsave(file.path(here::here(), 'figures/top_20_skills.png'), p, dpi = 300)
 ```
 
+```{r df_top_95_ml}
+qt_95_ml <- quantile(df$ML_INDEX, seq(0, 1, 0.05)) %>% 
+  .[20] %>% unname()
 
-## 8. Skills Analysis
+df_top_95_ml <- df %>% 
+  filter(ML_INDEX > qt_95_ml)
+
+all_skills_ml <- df_top_95_ml %>% 
+  select(contains('SKILL')) %>% 
+  select(-NUM_SKILL) %>% 
+  unlist() %>% 
+  unname() 
+
+top_20_skills_ml <- table(all_skills_ml) %>% 
+  as_tibble() %>% 
+  dplyr::rename(SKILL = all_skills_ml,
+                FREQ = n) %>% 
+  arrange(desc(FREQ)) %>% 
+  slice(1:20)
+
+p <- top_20_skills_ml %>% 
+  ggplot(aes(x = reorder(SKILL, FREQ), y = FREQ, label = FREQ)) +
+  geom_bar(stat='identity', fill = 'tomato') + coord_flip() +
+  geom_text(hjust = -0.5, size = 3) + 
+  scale_y_continuous(labels = scales::comma) +
+  xlab('Skill') +
+  ylab('Occurences') +
+  ggtitle('Top 20 Skills in Data Science Jobs \n(Top 95% ML Jobs)') +
+  theme_hc() +
+  ylim(0, 600)
+
+ggsave(file.path(here::here(), 'figures/top_20_skills_ml.png'), p, dpi = 300)
+```
+
+```{r df_top_95_cv}
+qt_95_cv <- quantile(df$CV_INDEX, seq(0, 1, 0.05)) %>% 
+  .[20] %>% unname()
+
+df_top_95_cv <- df %>% 
+  filter(CV_INDEX > qt_95_cv)
+
+all_skills_cv <- df_top_95_cv %>% 
+  select(contains('SKILL')) %>% 
+  select(-NUM_SKILL) %>% 
+  unlist() %>% 
+  unname() 
+
+top_20_skills_cv <- table(all_skills_cv) %>% 
+  as_tibble() %>% 
+  dplyr::rename(SKILL = all_skills_cv,
+                FREQ = n) %>% 
+  arrange(desc(FREQ)) %>% 
+  slice(1:20)
+
+p <- top_20_skills_cv %>% 
+  ggplot(aes(x = reorder(SKILL, FREQ), y = FREQ, label = FREQ)) +
+  geom_bar(stat='identity', fill = 'tomato') + coord_flip() +
+  geom_text(hjust = -0.5, size = 3) + 
+  scale_y_continuous(labels = scales::comma) +
+  xlab('Skill') +
+  ylab('Occurences') +
+  ggtitle('Top 20 Skills in Data Science Jobs \n(Top 95% CV Jobs)') +
+  theme_hc() +
+  ylim(0, 600)
+
+ggsave(file.path(here::here(), 'figures/top_20_skills_cv.png'), p, dpi = 300)
+```
+
+```{r df_top_95_nlp}
+qt_95_nlp <- quantile(df$NLP_INDEX, seq(0, 1, 0.05)) %>% 
+  .[20] %>% unname()
+
+df_top_95_nlp <- df %>% 
+  filter(NLP_INDEX > qt_95_nlp)
+
+all_skills_nlp <- df_top_95_nlp %>% 
+  select(contains('SKILL')) %>% 
+  select(-NUM_SKILL) %>% 
+  unlist() %>% 
+  unname() 
+
+top_20_skills_nlp <- table(all_skills_nlp) %>% 
+  as_tibble() %>% 
+  dplyr::rename(SKILL = all_skills_nlp,
+                FREQ = n) %>% 
+  arrange(desc(FREQ)) %>% 
+  slice(1:20)
+
+p <- top_20_skills_nlp %>% 
+  ggplot(aes(x = reorder(SKILL, FREQ), y = FREQ, label = FREQ)) +
+  geom_bar(stat='identity', fill = 'tomato') + coord_flip() +
+  geom_text(hjust = -0.5, size = 3) + 
+  scale_y_continuous(labels = scales::comma) +
+  xlab('Skill') +
+  ylab('Occurences') +
+  ggtitle('Top 20 Skills in Data Science Jobs \n(Top 95% NLP Jobs)') +
+  theme_hc() +
+  ylim(0, 550)
+
+ggsave(file.path(here::here(), 'figures/top_20_skills_nlp.png'), p, dpi = 300)
+```
 
 ## 9. Sector Analysis
+
+```{r ds_jobs_sector}
+p <- df %>% 
+  group_by(SECTOR_NAME) %>% 
+  tally() %>% ungroup() %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = reorder(SECTOR_NAME, n), y = n, fill = n, label = n)) +
+  geom_bar(stat = 'identity') +
+  coord_flip() +
+  scale_fill_viridis_c() +
+  xlab('Sector') + 
+  ylab('Number of Jobs') +
+  ggtitle('Sectors of Data Science Jobs') +
+  geom_text(hjust = -0.25, size = 3) +
+  ylim(0, 9000)
+
+ggsave(file.path(here::here(), 'figures/ds_job_sectors.png'), p, dpi = 300)
+```
+
 
 
 
