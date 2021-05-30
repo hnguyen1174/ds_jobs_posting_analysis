@@ -1,0 +1,147 @@
+---
+title: "Data Exploration for DS Jobs"
+author: "Gary Nguyen"
+date: "2021-05-29"
+---
+
+## 1. Load Libraries
+
+```{r}
+library(tidyverse)
+library(here)
+library(lubridate)
+library(glue)
+library(sf)
+library(tigris)
+library(ggthemes)
+```
+
+## 2 Load Data
+
+```{r}
+df <- read_csv('../data/data_science_jobs.csv')
+df <- df %>% 
+  dplyr::rename(index = X1)
+```
+
+## 3. Analyses by Companies
+
+## 4. Analyses by Time
+
+## 5. Analyses by Job Types
+
+## 6. Geographical Analysis
+
+```{r jobs_by_states}
+jobs_by_states <- df %>% 
+  distinct(index, FIPS_STATE)
+```
+
+```{r load_geom_data}
+terr_to_ignore <- c(
+  'Alaska',
+  'American Samoa',
+  'Commonwealth of the Northern Mariana Islands',
+  'Hawaii',
+  'Puerto Rico',
+  'United States Virgin Islands',
+  'Guam'
+)
+
+add_leading_zeros <- function(x) {
+  case_when(
+    str_length(x == 1) ~ paste0('0', x),
+    TRUE ~ x
+    )
+}
+
+sf_data <- readRDS('../data/gadm36_USA_1_sf.rds')
+```
+
+```{r num_ds_job_per_state}
+p <- df %>% 
+  group_by(STATE) %>% tally() %>% ungroup() %>% 
+  right_join(sf_data, by = c('STATE' = 'NAME_1')) %>% 
+  filter(!STATE %in% terr_to_ignore) %>% 
+  ggplot(aes(geometry = geometry)) +
+  geom_sf(aes(fill = n)) +
+  scale_fill_gradient(high = '#e34a33', low = '#fee8c8', guide = 'colorbar') +
+  ggtitle('Number of Job Postings Per State')
+
+print(p)
+ggsave('../figures/num_ds_job_per_state.png', p)
+```
+
+```{r num_ds_job_per_state_amazon}
+# Amazon
+# General Electric Company
+# JP Morgan Chase Company
+
+p <- df %>% 
+  filter(EMPLOYER == 'Amazon') %>% 
+  group_by(STATE) %>% tally() %>% ungroup() %>% 
+  right_join(sf_data, by = c('STATE' = 'NAME_1')) %>% 
+  filter(!STATE %in% terr_to_ignore) %>% 
+  ggplot(aes(geometry = geometry)) +
+  geom_sf(aes(fill = n)) +
+  scale_fill_gradient(high = '#e34a33', low = '#fee8c8', guide = 'colorbar') +
+  ggtitle('Number of Job Postings Per State')
+
+print(p)
+ggsave(file.path(here::here(), 'data/num_ds_job_per_state_amazon.png'), p)
+```
+
+```{r num_ds_job_per_state_ge}
+# Amazon
+# General Electric Company
+# JP Morgan Chase Company
+
+p <- df %>% 
+  filter(EMPLOYER == 'General Electric Company') %>% 
+  group_by(STATE) %>% tally() %>% ungroup() %>% 
+  right_join(sf_data, by = c('STATE' = 'NAME_1')) %>% 
+  filter(!STATE %in% terr_to_ignore) %>% 
+  ggplot(aes(geometry = geometry)) +
+  geom_sf(aes(fill = n)) +
+  scale_fill_gradient(high = '#e34a33', low = '#fee8c8', guide = 'colorbar') +
+  ggtitle('Number of Job Postings Per State')
+
+print(p)
+ggsave(file.path(here::here(), 'data/num_ds_job_per_state_ge.png'), p)
+```
+
+```{r num_ds_job_per_state_jpm}
+# Amazon
+# General Electric Company
+# JP Morgan Chase Company
+
+p <- df %>% 
+  filter(EMPLOYER == 'JP Morgan Chase Company') %>% 
+  group_by(STATE) %>% tally() %>% ungroup() %>% 
+  right_join(sf_data, by = c('STATE' = 'NAME_1')) %>% 
+  filter(!STATE %in% terr_to_ignore) %>% 
+  ggplot(aes(geometry = geometry)) +
+  geom_sf(aes(fill = n)) +
+  scale_fill_gradient(high = '#e34a33', low = '#fee8c8', guide = 'colorbar') +
+  ggtitle('Number of Job Postings Per State')
+
+print(p)
+ggsave(file.path(here::here(), 'data/num_ds_job_per_state_jpm.png'), p)
+```
+
+## 7. Text Analyses
+
+```{r}
+
+```
+
+## 8. Skills Analysis
+
+## 9. Sector Analysis
+
+
+
+
+
+
+
